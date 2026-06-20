@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mis Cuentas KP</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Segoe UI, sans-serif;
+}
+
+body{
+    background:#0f172a;
+    color:white;
+    min-height:100vh;
+    padding:20px;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+    color:#facc15;
+}
+
+.card{
+    background:#1e293b;
+    padding:20px;
+    border-radius:20px;
+    margin-bottom:20px;
+    box-shadow:0 0 20px rgba(0,0,0,.3);
+}
+
+input,select{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:12px;
+    margin-top:10px;
+    background:#334155;
+    color:white;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:12px;
+    margin-top:15px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.btn{
+    background:#facc15;
+    color:black;
+}
+
+.btn:hover{
+    opacity:.9;
+}
+
+.total{
+    text-align:center;
+    font-size:28px;
+    margin-top:15px;
+    color:#22c55e;
+    font-weight:bold;
+}
+
+.item{
+    background:#334155;
+    padding:15px;
+    border-radius:15px;
+    margin-top:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.item-info{
+    display:flex;
+    flex-direction:column;
+}
+
+.item-title{
+    font-weight:bold;
+}
+
+.item-value{
+    color:#22c55e;
+}
+
+.delete{
+    background:#ef4444;
+    color:white;
+    width:auto;
+    padding:8px 12px;
+}
+
+.footer{
+    text-align:center;
+    margin-top:20px;
+    color:#94a3b8;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>💰 Mis Cuentas KP</h1>
+
+<div class="card">
+
+<label>Mes</label>
+<select id="mes">
+<option>Enero</option>
+<option>Febrero</option>
+<option>Marzo</option>
+<option>Abril</option>
+<option>Mayo</option>
+<option>Junio</option>
+<option>Julio</option>
+<option>Agosto</option>
+<option>Septiembre</option>
+<option>Octubre</option>
+<option>Noviembre</option>
+<option>Diciembre</option>
+</select>
+
+<label>Año</label>
+<input type="number" id="anio" value="2026">
+
+<label>Título</label>
+<input type="text" id="titulo" placeholder="Ej: Gastos casa">
+
+<label>Valor</label>
+<input type="text" id="valor" placeholder="0">
+
+<button class="btn" onclick="agregarCuenta()">
+Agregar Cuenta
+</button>
+
+</div>
+
+<div class="card">
+
+<h2>Movimientos</h2>
+
+<div id="lista"></div>
+
+<div class="total" id="total">
+$ 0
+</div>
+
+</div>
+
+<div class="footer">
+KP Finanzas © 2026
+</div>
+
+</div>
+
+<script>
+
+const valorInput = document.getElementById("valor");
+
+valorInput.addEventListener("input", function(e){
+
+let valor = e.target.value.replace(/\D/g,'');
+
+if(valor===""){
+e.target.value="";
+return;
+}
+
+e.target.value = Number(valor)
+.toLocaleString('es-CO');
+
+});
+
+function obtenerDatos(){
+return JSON.parse(localStorage.getItem("cuentasKP")) || [];
+}
+
+function guardarDatos(datos){
+localStorage.setItem(
+"cuentasKP",
+JSON.stringify(datos)
+);
+}
+
+function agregarCuenta(){
+
+const titulo =
+document.getElementById("titulo").value;
+
+const valorTexto =
+document.getElementById("valor").value;
+
+const mes =
+document.getElementById("mes").value;
+
+const anio =
+document.getElementById("anio").value;
+
+if(!titulo || !valorTexto){
+alert("Completa todos los campos");
+return;
+}
+
+const valor =
+parseInt(valorTexto.replace(/\./g,''));
+
+const datos = obtenerDatos();
+
+datos.push({
+titulo,
+valor,
+mes,
+anio
+});
+
+guardarDatos(datos);
+
+document.getElementById("titulo").value="";
+document.getElementById("valor").value="";
+
+mostrarDatos();
+}
+
+function eliminar(index){
+
+const datos = obtenerDatos();
+
+datos.splice(index,1);
+
+guardarDatos(datos);
+
+mostrarDatos();
+}
+
+function mostrarDatos(){
+
+const lista =
+document.getElementById("lista");
+
+lista.innerHTML="";
+
+const datos = obtenerDatos();
+
+let total = 0;
+
+datos.forEach((item,index)=>{
+
+total += item.valor;
+
+lista.innerHTML += `
+<div class="item">
+
+<div class="item-info">
+
+<span class="item-title">
+${item.titulo}
+</span>
+
+<small>
+${item.mes} ${item.anio}
+</small>
+
+<span class="item-value">
+$ ${item.valor.toLocaleString('es-CO')}
+</span>
+
+</div>
+
+<button
+class="delete"
+onclick="eliminar(${index})">
+🗑
+</button>
+
+</div>
+`;
+
+});
+
+document.getElementById("total").innerHTML =
+"$ " + total.toLocaleString('es-CO');
+
+}
+
+mostrarDatos();
+
+</script>
+
+</body>
+</html>
