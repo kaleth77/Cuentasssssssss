@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Libro · Finanzas KP</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --papel: #F3ECDD;
+    --papel-osc: #E8DEC8;
+    --tinta: #2B2620;
+    --tinta-suave: #6B6254;
+    --vino: #7A2E2E;
+    --vino-osc: #5E2222;
+    --verde: #3F6B4D;
+    --verde-osc: #2D4E37;
+    --verde-claro: #E4EEE3;
+    --rojo-claro: #F4E1DD;
+    --azul: #2F4D6B;
+    --azul-claro: #E2EAF0;
+    --linea: #C9BCA0;
+    --sombra: rgba(43, 38, 32, 0.18);
+    --radio: 10px;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+    background: var(--papel);
+    background-image:
+      repeating-linear-gradient(
+        180deg,
+        transparent 0px,
+        transparent 33px,
+        rgba(120,108,80,0.08) 34px
+      );
+    color: var(--tinta);
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+
+  h1, h2, h3, .display{
+    font-family: Georgia, 'Iowan Old Style', serif;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  /* ---------- HEADER ---------- */
+  header{
+    background: var(--tinta);
+    color: var(--papel);
+    padding: 28px 24px 24px;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 6px solid var(--vino);
+  }
+  header::before{
+    content: "$";
+    position: absolute;
+    right: -10px;
+    top: -40px;
+    font-family: Georgia, serif;
+    font-size: 220px;
+    color: rgba(243,236,221,0.05);
+    font-weight: 700;
+    pointer-events: none;
+  }
+  .header-inner{
+    max-width: 960px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .libro-eyebrow{
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--linea);
+    margin-bottom: 6px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .libro-eyebrow::before{
+    content:"";
+    width:18px;
+    height:1px;
+    background: var(--vino);
+    display:inline-block;
+  }
+  header h1{
+    margin: 0 0 4px;
+    font-size: 32px;
+    color: var(--papel);
+  }
+  header p.subt{
+    margin: 0;
+    color: var(--linea);
+    font-size: 14.5px;
+  }
+
+  /* ---------- CONTENEDOR ---------- */
+  main{
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 28px 20px 0;
+  }
+
+  /* ---------- SELECTOR MES/AÑO ---------- */
+  .selector-tiempo{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+    background: #fff;
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+    padding: 14px 16px;
+    box-shadow: 0 2px 0 var(--sombra);
+  }
+  .selector-tiempo .grupo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .flecha-mes{
+    background: var(--papel);
+    border: 1px solid var(--linea);
+    color: var(--tinta);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition: background .15s, transform .1s;
+    font-family: Georgia, serif;
+  }
+  .flecha-mes:hover{ background: var(--papel-osc); }
+  .flecha-mes:active{ transform: scale(0.92); }
+
+  .mes-actual{
+    font-family: Georgia, serif;
+    font-size: 19px;
+    font-weight: 700;
+    min-width: 190px;
+    text-align: center;
+    text-transform: capitalize;
+  }
+
+  select.selector-anio{
+    font-family: inherit;
+    font-size: 14px;
+    padding: 7px 10px;
+    border-radius: 7px;
+    border: 1px solid var(--linea);
+    background: var(--papel);
+    color: var(--tinta);
+    cursor: pointer;
+  }
+
+  /* ---------- RESUMEN ---------- */
+  .resumen{
+    display:grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .tarjeta{
+    background:#fff;
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+    padding: 16px 18px;
+    box-shadow: 0 2px 0 var(--sombra);
+    position: relative;
+  }
+  .tarjeta .etiqueta{
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--tinta-suave);
+    margin-bottom: 6px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .punto{
+    width:10px; height:10px;
+    border-radius:50%;
+    display:inline-block;
+    flex-shrink:0;
+  }
+  .punto.verde{ background: var(--verde); }
+  .punto.vino{ background: var(--vino); }
+  .punto.azul{ background: var(--azul); }
+  .tarjeta .monto{
+    font-family: Georgia, serif;
+    font-size: 23px;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .tarjeta.ingresos{ border-left: 4px solid var(--verde); }
+  .tarjeta.ingresos .monto{ color: var(--verde); }
+  .tarjeta.gastos{ border-left: 4px solid var(--vino); }
+  .tarjeta.gastos .monto{ color: var(--vino); }
+  .tarjeta.balance{ border-left: 4px solid var(--azul); }
+  .tarjeta.balance .monto{ color: var(--azul); }
+  .tarjeta.balance.negativo .monto{ color: var(--vino); }
+
+  /* ---------- FORM NUEVO MOVIMIENTO ---------- */
+  .form-gasto{
+    background: #fff;
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+    padding: 18px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 0 var(--sombra);
+  }
+  .form-gasto h2{
+    font-size: 15px;
+    margin: 0 0 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--tinta-suave);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .form-gasto h2::before{
+    content:"✎";
+    color: var(--vino);
+    font-size: 17px;
+  }
+
+  .toggle-tipo{
+    display:flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .toggle-tipo button{
+    flex:1;
+    padding: 10px;
+    border-radius: 7px;
+    border: 1px solid var(--linea);
+    background: var(--papel);
+    color: var(--tinta-suave);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .toggle-tipo button.activo-gasto{
+    background: var(--rojo-claro);
+    border-color: var(--vino);
+    color: var(--vino-osc);
+  }
+  .toggle-tipo button.activo-ingreso{
+    background: var(--verde-claro);
+    border-color: var(--verde);
+    color: var(--verde-osc);
+  }
+
+  .fila-form{
+    display:grid;
+    grid-template-columns: 2fr 1.1fr 1.3fr auto;
+    gap: 10px;
+    align-items: end;
+  }
+  .campo label{
+    display:block;
+    font-size: 11.5px;
+    color: var(--tinta-suave);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .campo input, .campo select{
+    width: 100%;
+    font-family: inherit;
+    font-size: 15px;
+    padding: 10px 12px;
+    border: 1px solid var(--linea);
+    border-radius: 7px;
+    background: var(--papel);
+    color: var(--tinta);
+  }
+  .campo input:focus, .campo select:focus, select.selector-anio:focus, .flecha-mes:focus{
+    outline: 2px solid var(--vino);
+    outline-offset: 1px;
+  }
+  .campo-monto{ position: relative; }
+  .campo-monto input{
+    padding-left: 26px;
+    font-weight: 600;
+  }
+  .campo-monto .signo{
+    position:absolute;
+    left: 12px;
+    top: 36px;
+    color: var(--tinta-suave);
+    font-weight: 600;
+    pointer-events:none;
+  }
+  .btn-agregar{
+    background: var(--vino);
+    color: var(--papel);
+    border: none;
+    border-radius: 7px;
+    padding: 10px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, transform .08s;
+    white-space: nowrap;
+    height: 42px;
+  }
+  .btn-agregar.modo-ingreso{ background: var(--verde); }
+  .btn-agregar.modo-ingreso:hover{ background: var(--verde-osc); }
+  .btn-agregar:hover{ background: var(--vino-osc); }
+  .btn-agregar:active{ transform: scale(0.97); }
+
+  @media (max-width: 680px){
+    .fila-form{ grid-template-columns: 1fr 1fr; }
+    .fila-form .campo:last-of-type{ grid-column: span 2; }
+    .btn-agregar{ grid-column: span 2; }
+    .resumen{ grid-template-columns: 1fr; }
+  }
+
+  /* ---------- BARRA DE ACCIONES SOBRE LISTA ---------- */
+  .barra-lista{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .barra-lista h2{
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--tinta-suave);
+    margin: 0;
+  }
+  .acciones-lista{
+    display:flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .btn-mini{
+    background: #fff;
+    border: 1px solid var(--linea);
+    color: var(--tinta);
+    padding: 7px 12px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display:flex;
+    align-items:center;
+    gap: 6px;
+    transition: background .15s, border-color .15s;
+  }
+  .btn-mini:hover{ background: var(--papel-osc); }
+  .btn-mini.peligro{ border-color: var(--vino); color: var(--vino-osc); }
+  .btn-mini.peligro:hover{ background: var(--rojo-claro); }
+  .btn-mini:disabled{ opacity: .45; cursor: not-allowed; }
+  .btn-mini.exportar{ border-color: var(--verde); color: var(--verde-osc); }
+  .btn-mini.exportar:hover{ background: var(--verde-claro); }
+
+  /* ---------- LISTA ---------- */
+  .lista-gastos{
+    list-style: none;
+    margin: 0 0 8px;
+    padding: 0;
+    background: #fff;
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+    overflow: hidden;
+    box-shadow: 0 2px 0 var(--sombra);
+  }
+  .item-gasto{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--papel-osc);
+    transition: background .15s;
+  }
+  .item-gasto:last-child{ border-bottom: none; }
+  .item-gasto:hover{ background: var(--papel); }
+  .item-gasto.seleccionado{ background: var(--azul-claro); }
+
+  .item-izq{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+  }
+  .check-item{
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    cursor: pointer;
+    accent-color: var(--vino);
+  }
+  .item-dia{
+    font-family: Georgia, serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--vino);
+    background: var(--rojo-claro);
+    border-radius: 7px;
+    min-width: 36px;
+    height: 36px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink: 0;
+  }
+  .item-gasto.es-ingreso .item-dia{
+    color: var(--verde-osc);
+    background: var(--verde-claro);
+  }
+  .item-texto{ min-width: 0; }
+  .item-titulo{
+    font-weight: 600;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-cat{
+    font-size: 12px;
+    color: var(--tinta-suave);
+    display:inline-block;
+    margin-top: 2px;
+  }
+  .item-cat::before{ content: "· "; }
+
+  .item-der{
+    display:flex;
+    align-items:center;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+  .item-monto{
+    font-family: Georgia, serif;
+    font-weight: 700;
+    font-size: 16px;
+    white-space: nowrap;
+    color: var(--vino);
+  }
+  .item-gasto.es-ingreso .item-monto{ color: var(--verde-osc); }
+  .btn-borrar{
+    background: none;
+    border: none;
+    color: var(--tinta-suave);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 6px;
+    border-radius: 5px;
+    line-height: 1;
+  }
+  .btn-borrar:hover{ background: var(--rojo-claro); color: var(--vino); }
+
+  .vacio{
+    text-align:center;
+    padding: 40px 20px;
+    color: var(--tinta-suave);
+    background: #fff;
+    border: 1px dashed var(--linea);
+    border-radius: var(--radio);
+  }
+  .vacio .grande{ font-size: 34px; margin-bottom: 8px; }
+
+  /* ---------- CATEGORÍAS ---------- */
+  .categorias{ margin-top: 28px; }
+  .categorias > h2{
+    font-size:15px;text-transform:uppercase;letter-spacing:.08em;color:var(--tinta-suave);
+    margin: 0 0 12px;
+  }
+  .barra-cat{ margin-bottom: 10px; }
+  .barra-cat .info-cat{
+    display:flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .barra-cat .nombre-cat{ font-weight: 600; }
+  .barra-fondo{
+    background: var(--papel-osc);
+    border-radius: 6px;
+    height: 8px;
+    overflow: hidden;
+  }
+  .barra-rellena{
+    height: 100%;
+    border-radius: 6px;
+    transition: width .4s ease;
+  }
+  .barra-rellena.color-gasto{ background: var(--vino); }
+  .barra-rellena.color-ingreso{ background: var(--verde); }
+
+  footer{
+    text-align:center;
+    color: var(--tinta-suave);
+    font-size: 12px;
+    margin-top: 36px;
+    padding: 0 20px;
+  }
+
+  #toast{
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--tinta);
+    color: var(--papel);
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s, transform .25s;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    z-index: 100;
+    text-align: center;
+    max-width: 90vw;
+  }
+  #toast.show{
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="libro-eyebrow">Cuentas claras</div>
+    <h1>El Libro</h1>
+    <p class="subt">Ingresos, gastos y balance — organizado por mes y año</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- Selector de mes / año -->
+  <div class="selector-tiempo">
+    <div class="grupo">
+      <button class="flecha-mes" id="btnMesAnt" aria-label="Mes anterior">‹</button>
+      <div class="mes-actual" id="mesActualTexto">Junio 2026</div>
+      <button class="flecha-mes" id="btnMesSig" aria-label="Mes siguiente">›</button>
+    </div>
+    <select class="selector-anio" id="selectorAnioRapido"></select>
+  </div>
+
+  <!-- Resumen -->
+  <div class="resumen">
+    <div class="tarjeta ingresos">
+      <div class="etiqueta"><span class="punto verde"></span>Ingresos</div>
+      <div class="monto" id="totalIngresos">$ 0</div>
+    </div>
+    <div class="tarjeta gastos">
+      <div class="etiqueta"><span class="punto vino"></span>Gastos</div>
+      <div class="monto" id="totalGastos">$ 0</div>
+    </div>
+    <div class="tarjeta balance" id="tarjetaBalance">
+      <div class="etiqueta"><span class="punto azul"></span>Balance</div>
+      <div class="monto" id="totalBalance">$ 0</div>
+    </div>
+  </div>
+
+  <!-- Formulario nuevo movimiento -->
+  <div class="form-gasto">
+    <h2>Anotar movimiento</h2>
+
+    <div class="toggle-tipo">
+      <button type="button" id="btnTipoGasto" class="activo-gasto">💸 Gasto</button>
+      <button type="button" id="btnTipoIngreso">💰 Ingreso</button>
+    </div>
+
+    <form id="formGasto">
+      <div class="fila-form">
+        <div class="campo">
+          <label for="inputTitulo">Concepto</label>
+          <input type="text" id="inputTitulo" placeholder="Ej: Gastos casa" required autocomplete="off">
+        </div>
+        <div class="campo campo-monto">
+          <label for="inputMonto">Valor</label>
+          <span class="signo">$</span>
+          <input type="text" id="inputMonto" inputmode="numeric" placeholder="10.000" required autocomplete="off">
+        </div>
+        <div class="campo">
+          <label for="inputCategoria">Categoría</label>
+          <select id="inputCategoria">
+            <option value="Casa">Casa</option>
+            <option value="Negocio">Negocio</option>
+            <option value="Personal">Personal</option>
+            <option value="Barbería">Barbería</option>
+            <option value="KP">KP</option>
+            <option value="Comida">Comida</option>
+            <option value="Transporte">Transporte</option>
+            <option value="Servicios">Servicios</option>
+            <option value="Estudio">Estudio</option>
+            <option value="Salud">Salud</option>
+            <option value="Ocio">Ocio</option>
+            <option value="Otros" selected>Otros</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-agregar" id="btnAgregar">Agregar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lista -->
+  <div class="seccion-lista">
+    <div class="barra-lista">
+      <h2 id="tituloLista">Movimientos de junio 2026</h2>
+      <div class="acciones-lista">
+        <button class="btn-mini" id="btnSeleccionarTodo">☑ Seleccionar todo</button>
+        <button class="btn-mini peligro" id="btnBorrarSeleccion" disabled>🗑 Borrar seleccionados (<span id="contadorSel">0</span>)</button>
+        <button class="btn-mini exportar" id="btnExportarExcel">⬇ Exportar a Excel</button>
+      </div>
+    </div>
+    <ul class="lista-gastos" id="listaGastos"></ul>
+  </div>
+
+  <!-- Categorías -->
+  <div class="categorias" id="bloqueCategorias" style="display:none;">
+    <h2>Gastos por categoría</h2>
+    <div id="contenedorCategorias"></div>
+  </div>
+
+</main>
+
+<footer>
+  El Libro · tus cuentas, guardadas solo en este navegador
+</footer>
+
+<div id="toast"></div>
+
+<script>
+/* =========================================================
+   EL LIBRO — Ingresos, gastos, balance y borrado selectivo
+   Guardado local (localStorage). Exporta a Excel real (.xlsx)
+   ========================================================= */
+
+const MESES = ["enero","febrero","marzo","abril","mayo","junio",
+                "julio","agosto","septiembre","octubre","noviembre","diciembre"];
+
+const CATEGORIA_EMOJI = {
+  Casa:"🏠", Negocio:"💼", Personal:"🙋", "Barbería":"💈", KP:"⌚",
+  Comida:"🍽️", Transporte:"🚌", Servicios:"💡", Estudio:"📚",
+  Salud:"💊", Ocio:"🎮", Otros:"📌"
+};
+
+const CLAVE_STORAGE = "elLibro_movimientos_v2";
+
+let estado = {
+  anio: new Date().getFullYear(),
+  mes: new Date().getMonth(),
+  tipoActual: "gasto",          // "gasto" | "ingreso", para el formulario
+  seleccionados: new Set()       // ids seleccionados para borrar
+};
+
+/* ---------- almacenamiento ---------- */
+function cargarTodo(){
+  try{
+    const data = localStorage.getItem(CLAVE_STORAGE);
+    return data ? JSON.parse(data) : [];
+  }catch(e){
+    console.error("No se pudo leer el almacenamiento:", e);
+    return [];
+  }
+}
+function guardarTodo(movs){
+  localStorage.setItem(CLAVE_STORAGE, JSON.stringify(movs));
+}
+function idUnico(){
+  return Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+
+/* ---------- formato moneda colombiana ---------- */
+function formatearEntradaMonto(valorCrudo){
+  const soloNumeros = valorCrudo.replace(/\D/g,"");
+  if(soloNumeros === "") return "";
+  const numero = parseInt(soloNumeros, 10);
+  return numero.toLocaleString("es-CO");
+}
+function formatearMoneda(numero){
+  const signo = numero < 0 ? "-" : "";
+  return signo + "$ " + Math.round(Math.abs(numero)).toLocaleString("es-CO");
+}
+function valorNumerico(textoFormateado){
+  return parseInt(textoFormateado.replace(/\D/g,""), 10) || 0;
+}
+
+const inputMonto = document.getElementById("inputMonto");
+inputMonto.addEventListener("input", (e)=>{
+  e.target.value = formatearEntradaMonto(e.target.value);
+});
+
+/* ---------- toggle tipo gasto/ingreso ---------- */
+const btnTipoGasto = document.getElementById("btnTipoGasto");
+const btnTipoIngreso = document.getElementById("btnTipoIngreso");
+const btnAgregar = document.getElementById("btnAgregar");
+
+function actualizarToggleTipo(){
+  if(estado.tipoActual === "gasto"){
+    btnTipoGasto.classList.add("activo-gasto");
+    btnTipoIngreso.classList.remove("activo-ingreso");
+    btnAgregar.textContent = "Agregar gasto";
+    btnAgregar.classList.remove("modo-ingreso");
+  }else{
+    btnTipoIngreso.classList.add("activo-ingreso");
+    btnTipoGasto.classList.remove("activo-gasto");
+    btnAgregar.textContent = "Agregar ingreso";
+    btnAgregar.classList.add("modo-ingreso");
+  }
+}
+btnTipoGasto.addEventListener("click", ()=>{ estado.tipoActual = "gasto"; actualizarToggleTipo(); });
+btnTipoIngreso.addEventListener("click", ()=>{ estado.tipoActual = "ingreso"; actualizarToggleTipo(); });
+actualizarToggleTipo();
+
+/* ---------- selector de año ---------- */
+function poblarSelectorAnio(){
+  const select = document.getElementById("selectorAnioRapido");
+  const anioActualReal = new Date().getFullYear();
+  select.innerHTML = "";
+  for(let a = anioActualReal - 5; a <= anioActualReal + 2; a++){
+    const opt = document.createElement("option");
+    opt.value = a;
+    opt.textContent = a;
+    select.appendChild(opt);
+  }
+  select.value = estado.anio;
+}
+document.getElementById("selectorAnioRapido").addEventListener("change", (e)=>{
+  estado.anio = parseInt(e.target.value, 10);
+  estado.seleccionados.clear();
+  refrescarTodo();
+});
+
+/* ---------- navegación de mes ---------- */
+document.getElementById("btnMesAnt").addEventListener("click", ()=>{
+  estado.mes--;
+  if(estado.mes < 0){ estado.mes = 11; estado.anio--; }
+  estado.seleccionados.clear();
+  poblarSelectorAnio();
+  refrescarTodo();
+});
+document.getElementById("btnMesSig").addEventListener("click", ()=>{
+  estado.mes++;
+  if(estado.mes > 11){ estado.mes = 0; estado.anio++; }
+  estado.seleccionados.clear();
+  poblarSelectorAnio();
+  refrescarTodo();
+});
+
+/* ---------- agregar movimiento ---------- */
+document.getElementById("formGasto").addEventListener("submit", (e)=>{
+  e.preventDefault();
+
+  const tituloInput = document.getElementById("inputTitulo");
+  const categoriaInput = document.getElementById("inputCategoria");
+
+  const titulo = tituloInput.value.trim();
+  const monto = valorNumerico(inputMonto.value);
+  const categoria = categoriaInput.value;
+
+  if(!titulo){ mostrarToast("Escribe un concepto"); return; }
+  if(!monto || monto <= 0){ mostrarToast("Escribe un valor válido"); return; }
+
+  const hoy = new Date();
+  const diaParaGuardar = (hoy.getFullYear() === estado.anio && hoy.getMonth() === estado.mes)
+    ? hoy.getDate()
+    : 1;
+
+  const nuevoMov = {
+    id: idUnico(),
+    tipo: estado.tipoActual,
+    titulo,
+    monto,
+    categoria,
+    anio: estado.anio,
+    mes: estado.mes,
+    dia: diaParaGuardar,
+    creado: Date.now()
+  };
+
+  const movs = cargarTodo();
+  movs.push(nuevoMov);
+  guardarTodo(movs);
+
+  tituloInput.value = "";
+  inputMonto.value = "";
+  categoriaInput.value = "Otros";
+  tituloInput.focus();
+
+  mostrarToast(estado.tipoActual === "gasto" ? "Gasto agregado ✓" : "Ingreso agregado ✓");
+  refrescarTodo();
+});
+
+/* ---------- borrar un movimiento individual ---------- */
+function borrarUno(id){
+  const movs = cargarTodo().filter(m => m.id !== id);
+  guardarTodo(movs);
+  estado.seleccionados.delete(id);
+  mostrarToast("Movimiento eliminado");
+  refrescarTodo();
+}
+
+/* ---------- selección con checkboxes ---------- */
+function alternarSeleccion(id, marcado){
+  if(marcado) estado.seleccionados.add(id);
+  else estado.seleccionados.delete(id);
+  actualizarBarraSeleccion();
+  const fila = document.querySelector(`.item-gasto[data-id="${id}"]`);
+  if(fila) fila.classList.toggle("seleccionado", marcado);
+}
+
+function actualizarBarraSeleccion(){
+  const cantidad = estado.seleccionados.size;
+  document.getElementById("contadorSel").textContent = cantidad;
+  document.getElementById("btnBorrarSeleccion").disabled = cantidad === 0;
+}
+
+document.getElementById("btnSeleccionarTodo").addEventListener("click", ()=>{
+  const visibles = obtenerMovimientosDelMesActual();
+  const todosYaSeleccionados = visibles.length > 0 && visibles.every(m => estado.seleccionados.has(m.id));
+
+  if(todosYaSeleccionados){
+    visibles.forEach(m => estado.seleccionados.delete(m.id));
+  }else{
+    visibles.forEach(m => estado.seleccionados.add(m.id));
+  }
+  pintarLista();
+  actualizarBarraSeleccion();
+});
+
+document.getElementById("btnBorrarSeleccion").addEventListener("click", ()=>{
+  const cantidad = estado.seleccionados.size;
+  if(cantidad === 0) return;
+
+  const confirmado = confirm(
+    cantidad === 1
+      ? "¿Borrar el movimiento seleccionado?"
+      : `¿Borrar los ${cantidad} movimientos seleccionados?`
+  );
+  if(!confirmado) return;
+
+  const idsABorrar = estado.seleccionados;
+  const restantes = cargarTodo().filter(m => !idsABorrar.has(m.id));
+  guardarTodo(restantes);
+  estado.seleccionados.clear();
+  mostrarToast("Movimientos eliminados");
+  refrescarTodo();
+});
+
+/* ---------- obtener movimientos del mes/año actual ---------- */
+function obtenerMovimientosDelMesActual(){
+  return cargarTodo()
+    .filter(m => m.anio === estado.anio && m.mes === estado.mes)
+    .sort((a,b) => b.dia - a.dia || b.creado - a.creado);
+}
+
+/* ---------- pintar lista ---------- */
+function pintarLista(){
+  const lista = document.getElementById("listaGastos");
+  const movs = obtenerMovimientosDelMesActual();
+
+  document.getElementById("tituloLista").textContent =
+    `Movimientos de ${MESES[estado.mes]} ${estado.anio}`;
+  document.getElementById("mesActualTexto").textContent =
+    `${MESES[estado.mes].charAt(0).toUpperCase()+MESES[estado.mes].slice(1)} ${estado.anio}`;
+
+  const msgVacioExistente = document.getElementById("listaVaciaMsg");
+  if(msgVacioExistente) msgVacioExistente.remove();
+
+  if(movs.length === 0){
+    lista.innerHTML = "";
+    lista.style.display = "none";
+    const div = document.createElement("div");
+    div.id = "listaVaciaMsg";
+    div.className = "vacio";
+    div.innerHTML = `<div class="grande">🗒️</div>Todavía no hay movimientos anotados<br>para ${MESES[estado.mes]} de ${estado.anio}.`;
+    lista.parentElement.insertBefore(div, document.getElementById("bloqueCategorias"));
+    return;
+  }
+  lista.style.display = "block";
+
+  lista.innerHTML = movs.map(m => {
+    const esIngreso = m.tipo === "ingreso";
+    const seleccionado = estado.seleccionados.has(m.id);
+    return `
+    <li class="item-gasto ${esIngreso ? "es-ingreso" : ""} ${seleccionado ? "seleccionado" : ""}" data-id="${m.id}">
+      <div class="item-izq">
+        <input type="checkbox" class="check-item" ${seleccionado ? "checked" : ""}
+          onchange="alternarSeleccion('${m.id}', this.checked)" aria-label="Seleccionar movimiento">
+        <div class="item-dia">${m.dia}</div>
+        <div class="item-texto">
+          <div class="item-titulo">${escaparHtml(m.titulo)}</div>
+          <span class="item-cat">${CATEGORIA_EMOJI[m.categoria] || "📌"} ${m.categoria}</span>
+        </div>
+      </div>
+      <div class="item-der">
+        <div class="item-monto">${esIngreso ? "+" : "-"}${formatearMoneda(m.monto)}</div>
+        <button class="btn-borrar" onclick="borrarUno('${m.id}')" aria-label="Eliminar movimiento">✕</button>
+      </div>
+    </li>
+  `;
+  }).join("");
+
+  actualizarBarraSeleccion();
+}
+
+function escaparHtml(texto){
+  const div = document.createElement("div");
+  div.textContent = texto;
+  return div.innerHTML;
+}
+
+/* ---------- pintar resumen ---------- */
+function pintarResumen(){
+  const movs = obtenerMovimientosDelMesActual();
+  const totalIngresos = movs.filter(m=>m.tipo==="ingreso").reduce((a,m)=>a+m.monto,0);
+  const totalGastos = movs.filter(m=>m.tipo==="gasto").reduce((a,m)=>a+m.monto,0);
+  const balance = totalIngresos - totalGastos;
+
+  document.getElementById("totalIngresos").textContent = formatearMoneda(totalIngresos);
+  document.getElementById("totalGastos").textContent = formatearMoneda(totalGastos);
+  document.getElementById("totalBalance").textContent = formatearMoneda(balance);
+
+  document.getElementById("tarjetaBalance").classList.toggle("negativo", balance < 0);
+}
+
+/* ---------- pintar categorías (solo gastos) ---------- */
+function pintarCategorias(){
+  const movs = obtenerMovimientosDelMesActual();
+  const gastos = movs.filter(m => m.tipo === "gasto");
+  const bloque = document.getElementById("bloqueCategorias");
+  const contenedor = document.getElementById("contenedorCategorias");
+
+  if(gastos.length === 0){
+    bloque.style.display = "none";
+    return;
+  }
+  bloque.style.display = "block";
+
+  const totales = {};
+  gastos.forEach(g => { totales[g.categoria] = (totales[g.categoria] || 0) + g.monto; });
+
+  const totalGeneral = gastos.reduce((a,g)=>a+g.monto,0);
+  const categoriasOrdenadas = Object.entries(totales).sort((a,b)=> b[1]-a[1]);
+
+  contenedor.innerHTML = categoriasOrdenadas.map(([cat, monto])=>{
+    const porcentaje = totalGeneral ? Math.round((monto/totalGeneral)*100) : 0;
+    return `
+      <div class="barra-cat">
+        <div class="info-cat">
+          <span class="nombre-cat">${CATEGORIA_EMOJI[cat]||"📌"} ${cat}</span>
+          <span>${formatearMoneda(monto)} · ${porcentaje}%</span>
+        </div>
+        <div class="barra-fondo">
+          <div class="barra-rellena color-gasto" style="width:${porcentaje}%"></div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+/* ---------- exportar a Excel real (.xlsx) ---------- */
+document.getElementById("btnExportarExcel").addEventListener("click", ()=>{
+  const movs = obtenerMovimientosDelMesActual();
+  if(movs.length === 0){
+    mostrarToast("No hay movimientos para exportar en este mes");
+    return;
+  }
+
+  const movsOrdenados = [...movs].sort((a,b)=> a.dia - b.dia);
+
+  const filas = movsOrdenados.map(m => ({
+    "Día": m.dia,
+    "Tipo": m.tipo === "ingreso" ? "Ingreso" : "Gasto",
+    "Concepto": m.titulo,
+    "Categoría": m.categoria,
+    "Valor": m.tipo === "ingreso" ? m.monto : -m.monto
+  }));
+
+  const totalIngresos = movs.filter(m=>m.tipo==="ingreso").reduce((a,m)=>a+m.monto,0);
+  const totalGastos = movs.filter(m=>m.tipo==="gasto").reduce((a,m)=>a+m.monto,0);
+  const balance = totalIngresos - totalGastos;
+
+  filas.push({});
+  filas.push({"Concepto":"Total ingresos", "Valor": totalIngresos});
+  filas.push({"Concepto":"Total gastos", "Valor": -totalGastos});
+  filas.push({"Concepto":"Balance", "Valor": balance});
+
+  const hoja = XLSX.utils.json_to_sheet(filas, {skipHeader:false});
+  hoja["!cols"] = [{wch:6},{wch:10},{wch:28},{wch:14},{wch:14}];
+
+  const libro = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(libro, hoja, `${MESES[estado.mes]}_${estado.anio}`.slice(0,31));
+
+  XLSX.writeFile(libro, `movimientos_${MESES[estado.mes]}_${estado.anio}.xlsx`);
+  mostrarToast("Excel exportado ✓");
+});
+
+/* ---------- toast ---------- */
+let toastTimeout;
+function mostrarToast(mensaje){
+  const toast = document.getElementById("toast");
+  toast.textContent = mensaje;
+  toast.classList.add("show");
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(()=> toast.classList.remove("show"), 2200);
+}
+
+/* ---------- refrescar todo ---------- */
+function refrescarTodo(){
+  pintarLista();
+  pintarResumen();
+  pintarCategorias();
+}
+
+/* ---------- inicio ---------- */
+poblarSelectorAnio();
+refrescarTodo();
+</script>
+
+</body>
+</html>
