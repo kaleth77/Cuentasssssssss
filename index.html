@@ -3,203 +3,419 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KP Finanzas</title>
-
+<title>El Libro</title>
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0f0f0f;
-  color:white;
-}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-header{
-  padding:15px;
-  background:#111;
-  text-align:center;
-  font-weight:bold;
-}
+  body {
+    background: #0d0f12;
+    color: #e8e8e8;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    min-height: 100vh;
+    padding: 16px;
+  }
 
-.container{
-  padding:10px;
-}
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+  }
 
-.row{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-}
+  h1 {
+    text-align: center;
+    font-size: 26px;
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
 
-input,select{
-  flex:1;
-  padding:10px;
-  border:none;
-  border-radius:6px;
-  background:#1e1e1e;
-  color:white;
-}
+  .subtitle {
+    text-align: center;
+    color: #888;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
 
-button{
-  padding:10px;
-  border:none;
-  border-radius:6px;
-  font-weight:bold;
-  cursor:pointer;
-}
+  /* Balance card */
+  .balance-card {
+    background: linear-gradient(135deg, #1a1d23, #14161a);
+    border: 1px solid #2a2d35;
+    border-radius: 16px;
+    padding: 22px;
+    text-align: center;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
 
-.add{background:#00c853;}
-.gasto{background:#f44336;}
-.ingreso{background:#2196f3;}
+  .balance-label {
+    color: #888;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
 
-.card{
-  margin-top:10px;
-  background:#1a1a1a;
-  padding:10px;
-  border-radius:8px;
-}
+  .balance-value {
+    font-size: 34px;
+    font-weight: 700;
+  }
 
-.item{
-  display:flex;
-  justify-content:space-between;
-  padding:8px;
-  border-bottom:1px solid #333;
-}
+  .balance-value.positivo { color: #4ade80; }
+  .balance-value.negativo { color: #f87171; }
 
-small{color:#aaa;}
+  .resumen-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .resumen-box {
+    flex: 1;
+    background: #15171c;
+    border: 1px solid #23262e;
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .resumen-box .label {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 4px;
+  }
+
+  .resumen-box .valor {
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .resumen-box.ganancia .valor { color: #4ade80; }
+  .resumen-box.gasto .valor { color: #f87171; }
+
+  /* Form */
+  .form-card {
+    background: #15171c;
+    border: 1px solid #23262e;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+
+  .tipo-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .tipo-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #2a2d35;
+    background: #1a1d23;
+    color: #888;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tipo-btn.activo.ganancia {
+    background: #163322;
+    border-color: #4ade80;
+    color: #4ade80;
+  }
+
+  .tipo-btn.activo.gasto {
+    background: #331616;
+    border-color: #f87171;
+    color: #f87171;
+  }
+
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    background: #0d0f12;
+    border: 1px solid #2a2d35;
+    color: #e8e8e8;
+    padding: 13px;
+    border-radius: 10px;
+    font-size: 15px;
+    margin-bottom: 10px;
+    outline: none;
+  }
+
+  input::placeholder { color: #555; }
+
+  input:focus {
+    border-color: #555;
+  }
+
+  .btn-guardar {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    background: #3b82f6;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-guardar:active {
+    background: #2563eb;
+  }
+
+  .btn-guardar:disabled {
+    background: #2a2d35;
+    color: #777;
+    cursor: not-allowed;
+  }
+
+  .status-msg {
+    text-align: center;
+    font-size: 13px;
+    margin-top: 10px;
+    min-height: 18px;
+  }
+
+  .status-msg.ok { color: #4ade80; }
+  .status-msg.error { color: #f87171; }
+  .status-msg.cargando { color: #888; }
+
+  /* Historial */
+  .historial-titulo {
+    font-size: 15px;
+    color: #888;
+    margin: 18px 0 10px 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .item {
+    background: #15171c;
+    border: 1px solid #23262e;
+    border-radius: 12px;
+    padding: 13px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .item-info { flex: 1; }
+
+  .item-concepto {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .item-fecha {
+    font-size: 12px;
+    color: #777;
+  }
+
+  .item-valor {
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .item-valor.ganancia { color: #4ade80; }
+  .item-valor.gasto { color: #f87171; }
+
+  .vacio {
+    text-align: center;
+    color: #555;
+    font-size: 13px;
+    padding: 20px;
+  }
 </style>
 </head>
-
 <body>
 
-<header>💰 KP FINANZAS</header>
-
 <div class="container">
+  <h1>📒 El Libro</h1>
+  <div class="subtitle">Tus finanzas, bien organizadas</div>
 
-<!-- FORMULARIO -->
-<div class="card">
+  <div class="balance-card">
+    <div class="balance-label">Balance Total</div>
+    <div class="balance-value" id="balanceValor">$0</div>
+  </div>
 
-<div class="row">
-<select id="tipo">
-<option value="Gasto">Gasto</option>
-<option value="Ingreso">Ingreso</option>
-</select>
+  <div class="resumen-row">
+    <div class="resumen-box ganancia">
+      <div class="label">Ganancias</div>
+      <div class="valor" id="totalGanancias">$0</div>
+    </div>
+    <div class="resumen-box gasto">
+      <div class="label">Gastos</div>
+      <div class="valor" id="totalGastos">$0</div>
+    </div>
+  </div>
 
-<input id="concepto" placeholder="Concepto">
-</div>
+  <div class="form-card">
+    <div class="tipo-selector">
+      <button type="button" class="tipo-btn ganancia activo" id="btnGanancia" onclick="seleccionarTipo('Ganancia')">↑ Ganancia</button>
+      <button type="button" class="tipo-btn gasto" id="btnGasto" onclick="seleccionarTipo('Gasto')">↓ Gasto</button>
+    </div>
 
-<div class="row">
-<input id="categoria" placeholder="Categoría">
-<input id="valor" placeholder="Valor">
-</div>
+    <input type="text" id="concepto" placeholder="¿En qué? Ej: Sueldo, Mercado, Transporte...">
+    <input type="text" id="valor" inputmode="numeric" placeholder="Valor. Ej: 50.000">
 
-<button class="add" onclick="agregar()">➕ Agregar</button>
-</div>
+    <button class="btn-guardar" id="btnGuardar" onclick="guardarRegistro()">Guardar</button>
+    <div class="status-msg" id="statusMsg"></div>
+  </div>
 
-<!-- RESUMEN -->
-<div class="card">
-<div id="resumen">Balance: $0</div>
-</div>
-
-<!-- LISTA -->
-<div class="card" id="lista"></div>
-
+  <div class="historial-titulo">Historial</div>
+  <div id="historial">
+    <div class="vacio">Aún no hay registros</div>
+  </div>
 </div>
 
 <script>
+  const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwpGEFrSCD1O2Wv8C395BQ7d6PBt1ZCCPwK_be3uRe5XD7jnsKJ9Wiym8DY59a-zmsD/exec";
 
-const URL = "https://script.google.com/macros/s/AKfycbwpGEFrSCD1O2Wv8C395BQ7d6PBt1ZCCPwK_be3uRe5XD7jnsKJ9Wiym8DY59a-zmsD/exec";
+  let tipoActual = "Ganancia";
+  let registros = [];
 
-let datos = JSON.parse(localStorage.getItem("kp_finanzas") || "[]");
-
-function formatear(n){
-  return "$ " + Number(n).toLocaleString("es-CO");
-}
-
-function guardarLocal(){
-  localStorage.setItem("kp_finanzas", JSON.stringify(datos));
-}
-
-function agregar(){
-
-  let tipo = document.getElementById("tipo").value;
-  let concepto = document.getElementById("concepto").value;
-  let categoria = document.getElementById("categoria").value;
-  let valor = Number(document.getElementById("valor").value);
-
-  if(!concepto || !valor){
-    alert("Completa los campos");
-    return;
+  // ---- Formato de pesos colombianos ----
+  function formatearNumero(num) {
+    return Math.round(num).toLocaleString('es-CO');
   }
 
-  let mov = {
-    tipo,
-    concepto,
-    categoria,
-    valor,
-    mes: new Date().getMonth()+1,
-    anio: new Date().getFullYear()
-  };
+  function formatearMoneda(num) {
+    return "$" + formatearNumero(num);
+  }
 
-  datos.push(mov);
-  guardarLocal();
-  enviarSheets(mov);
-  render();
-
-  document.getElementById("concepto").value = "";
-  document.getElementById("valor").value = "";
-}
-
-function enviarSheets(mov){
-  fetch(URL,{
-    method:"POST",
-    mode:"no-cors",
-    body:JSON.stringify(mov)
-  });
-}
-
-function eliminar(i){
-  datos.splice(i,1);
-  guardarLocal();
-  render();
-}
-
-function render(){
-
-  let lista = document.getElementById("lista");
-  lista.innerHTML = "";
-
-  let ingreso = 0;
-  let gasto = 0;
-
-  datos.forEach((m,i)=>{
-
-    if(m.tipo === "Ingreso") ingreso += m.valor;
-    else gasto += m.valor;
-
-    lista.innerHTML += `
-      <div class="item">
-        <div>
-          <b>${m.concepto}</b><br>
-          <small>${m.tipo} · ${m.categoria}</small>
-        </div>
-        <div>
-          ${formatear(m.valor)}
-          <button onclick="eliminar(${i})">❌</button>
-        </div>
-      </div>
-    `;
+  // Mientras el usuario escribe el valor, le metemos puntos automáticos
+  const inputValor = document.getElementById('valor');
+  inputValor.addEventListener('input', function(e) {
+    let soloNumeros = e.target.value.replace(/\D/g, '');
+    if (soloNumeros === '') {
+      e.target.value = '';
+      return;
+    }
+    e.target.value = parseInt(soloNumeros, 10).toLocaleString('es-CO');
   });
 
-  let balance = ingreso - gasto;
+  function seleccionarTipo(tipo) {
+    tipoActual = tipo;
+    document.getElementById('btnGanancia').classList.toggle('activo', tipo === 'Ganancia');
+    document.getElementById('btnGasto').classList.toggle('activo', tipo === 'Gasto');
+  }
 
-  document.getElementById("resumen").innerHTML =
-    `Ingresos: ${formatear(ingreso)} <br>
-     Gastos: ${formatear(gasto)} <br>
-     <b>Balance: ${formatear(balance)}</b>`;
-}
+  function actualizarResumen() {
+    let totalGanancias = 0;
+    let totalGastos = 0;
 
-render();
+    registros.forEach(r => {
+      if (r.tipo === 'Ganancia') totalGanancias += r.valorNum;
+      else totalGastos += r.valorNum;
+    });
 
+    const balance = totalGanancias - totalGastos;
+
+    document.getElementById('totalGanancias').textContent = formatearMoneda(totalGanancias);
+    document.getElementById('totalGastos').textContent = formatearMoneda(totalGastos);
+
+    const balanceEl = document.getElementById('balanceValor');
+    balanceEl.textContent = formatearMoneda(balance);
+    balanceEl.classList.remove('positivo', 'negativo');
+    balanceEl.classList.add(balance >= 0 ? 'positivo' : 'negativo');
+  }
+
+  function renderHistorial() {
+    const cont = document.getElementById('historial');
+
+    if (registros.length === 0) {
+      cont.innerHTML = '<div class="vacio">Aún no hay registros</div>';
+      return;
+    }
+
+    cont.innerHTML = '';
+    registros.slice().reverse().forEach(r => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML = `
+        <div class="item-info">
+          <div class="item-concepto">${r.concepto}</div>
+          <div class="item-fecha">${r.mes} ${r.anio}</div>
+        </div>
+        <div class="item-valor ${r.tipo === 'Ganancia' ? 'ganancia' : 'gasto'}">
+          ${r.tipo === 'Ganancia' ? '+' : '-'}${formatearMoneda(r.valorNum)}
+        </div>
+      `;
+      cont.appendChild(div);
+    });
+  }
+
+  function mostrarStatus(texto, clase) {
+    const el = document.getElementById('statusMsg');
+    el.textContent = texto;
+    el.className = 'status-msg ' + clase;
+  }
+
+  const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+  function guardarRegistro() {
+    const concepto = document.getElementById('concepto').value.trim();
+    const valorTexto = document.getElementById('valor').value.replace(/\./g, '').replace(/,/g, '');
+    const valorNum = parseInt(valorTexto, 10);
+
+    if (!concepto) {
+      mostrarStatus('Escribe el concepto', 'error');
+      return;
+    }
+    if (!valorNum || valorNum <= 0) {
+      mostrarStatus('Escribe un valor válido', 'error');
+      return;
+    }
+
+    const hoy = new Date();
+    const mes = MESES[hoy.getMonth()];
+    const anio = hoy.getFullYear();
+
+    const registro = {
+      tipo: tipoActual,
+      concepto: concepto,
+      categoria: tipoActual,
+      valor: valorNum,
+      valorNum: valorNum,
+      mes: mes,
+      anio: anio
+    };
+
+    const btn = document.getElementById('btnGuardar');
+    btn.disabled = true;
+    mostrarStatus('Guardando...', 'cargando');
+
+    fetch(URL_SCRIPT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(registro)
+    })
+    .then(() => {
+      registros.push(registro);
+      renderHistorial();
+      actualizarResumen();
+      document.getElementById('concepto').value = '';
+      document.getElementById('valor').value = '';
+      mostrarStatus('¡Guardado en Sheets! ✅', 'ok');
+      btn.disabled = false;
+      setTimeout(() => mostrarStatus('', ''), 2500);
+    })
+    .catch(err => {
+      mostrarStatus('Error al guardar, intenta de nuevo', 'error');
+      btn.disabled = false;
+    });
+  }
+
+  // Permitir Enter para guardar
+  document.getElementById('valor').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') guardarRegistro();
+  });
+
+  actualizarResumen();
 </script>
 
 </body>
