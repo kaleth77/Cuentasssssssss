@@ -667,7 +667,7 @@ const CATEGORIA_EMOJI = {
 };
 
 const CLAVE_STORAGE = "elLibro_movimientos_v2";
-
+const URL_SHEET = "https://script.google.com/macros/s/AKfycbxAHluEKotzy0LuGypyfG6cjt91TL6ksplfEKfJA4v77p5xmi_Ig0bNevWS9MSo6Hkgww/exec";
 let estado = {
   anio: new Date().getFullYear(),
   mes: new Date().getMonth(),
@@ -690,6 +690,23 @@ function guardarTodo(movs){
 }
 function idUnico(){
   return Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+  async function guardarEnGoogleSheets(mov){
+
+  try{
+
+    await fetch(URL_SHEET,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify(mov)
+    });
+
+  }catch(error){
+    console.error("Error enviando a Google Sheets:", error);
+  }
+
 }
 
 /* ---------- formato moneda colombiana ---------- */
@@ -802,7 +819,9 @@ document.getElementById("formGasto").addEventListener("submit", (e)=>{
 
   const movs = cargarTodo();
   movs.push(nuevoMov);
-  guardarTodo(movs);
+guardarTodo(movs);
+
+guardarEnGoogleSheets(nuevoMov);
 
   tituloInput.value = "";
   inputMonto.value = "";
