@@ -618,8 +618,8 @@
       <div class="acciones-lista">
         <button class="btn-mini" id="btnSeleccionarTodo">☑ Seleccionar todo</button>
         <button class="btn-mini peligro" id="btnBorrarSeleccion" disabled>🗑 Borrar seleccionados (<span id="contadorSel">0</span>)</button>
-        <!-- BOTÓN CAMBIADO: ahora sincroniza con Google Sheets -->
-        <button class="btn-mini exportar" id="btnSincronizarSheets">☁ Guardar mes en Sheets</button>
+        <button class="btn-mini exportar" id="btnSincronizarMes">☁ Guardar mes en Sheets</button>
+        <button class="btn-mini exportar" id="btnSincronizarTodo" style="border-color:#2F4D6B;color:#2F4D6B;">📋 Guardar todo en Sheets</button>
       </div>
     </div>
     <ul class="lista-gastos" id="listaGastos"></ul>
@@ -639,6 +639,10 @@
 <div id="toast"></div>
 
 <script>
+// ─── IMPORTANTE: reemplaza esta URL con la tuya de Apps Script ───────────────
+const URL_SHEET = "https://script.google.com/macros/s/AKfycbwpGEFrSCD1O2Wv8C395BQ7d6PBt1ZCCPwK_be3uRe5XD7jnsKJ9Wiym8DY59a-zmsD/exec";
+// ─────────────────────────────────────────────────────────────────────────────
+
 const MESES = ["enero","febrero","marzo","abril","mayo","junio",
                 "julio","agosto","septiembre","octubre","noviembre","diciembre"];
 
@@ -649,7 +653,6 @@ const CATEGORIA_EMOJI = {
 };
 
 const CLAVE_STORAGE = "elLibro_movimientos_v2";
-const URL_SHEET = "https://script.google.com/macros/s/AKfycbxAHluEKotzy0LuGypyfG6cjt91TL6ksplfEKfJA4v77p5xmi_Ig0bNevWS9MSo6Hkgww/exec";
 
 let estado = {
   anio: new Date().getFullYear(),
@@ -685,43 +688,46 @@ async function guardarEnGoogleSheets(mov){
   }
 }
 
-/* ---------- NUEVA FUNCIÓN: enviar todos los movimientos del mes ---------- */
-document.getElementById("btnSincronizarSheets").addEventListener("click", async () => {
-  const movs = obtenerMovimientosDelMesActual();
-  if(movs.length === 0){
-    mostrarToast("No hay movimientos para guardar en este mes");
-    return;
-  }
+/* ---------- construir payload de un mes ---------- */
+function construirPayloadMes(anio, mes){
+  const todos = cargarTodo();
+  const movs = todos
+    .filter(m => m.anio === anio && m.mes === mes)
+    .sort((a,b) => a.dia - b.dia);
 
-  const btn = document.getElementById("btnSincronizarSheets");
-  btn.disabled = true;
-  btn.textContent = "⏳ Enviando...";
-  mostrarToast("Enviando movimientos a Google Sheets…");
-
-  const movsOrdenados = [...movs].sort((a,b) => a.dia - b.dia);
+  if(movs.length === 0) return null;
 
   const totalIngresos = movs.filter(m=>m.tipo==="ingreso").reduce((a,m)=>a+m.monto,0);
   const totalGastos   = movs.filter(m=>m.tipo==="gasto").reduce((a,m)=>a+m.monto,0);
   const balance       = totalIngresos - totalGastos;
 
-  // Construimos el payload con todos los movimientos del mes + resumen
-  const payload = {
-    accion: "sincronizar_mes",          // para que tu Apps Script lo identifique si quieres
-    mes: MESES[estado.mes],
-    anio: estado.anio,
-    movimientos: movsOrdenados.map(m => ({
+  return {
+    accion: "sincronizar_mes",
+    mes: MESES[mes],
+    anio: anio,
+    movimientos: movs.map(m => ({
       dia: m.dia,
       tipo: m.tipo === "ingreso" ? "Ingreso" : "Gasto",
       concepto: m.titulo,
       categoria: m.categoria,
       valor: m.tipo === "ingreso" ? m.monto : -m.monto
     })),
-    resumen: {
-      totalIngresos,
-      totalGastos,
-      balance
-    }
+    resumen: { totalIngresos, totalGastos, balance }
   };
+}
+
+/* ---------- BOTÓN: Guardar mes actual en Sheets ---------- */
+document.getElementById("btnSincronizarMes").addEventListener("click", async () => {
+  const payload = construirPayloadMes(estado.anio, estado.mes);
+
+  if(!payload){
+    mostrarToast("No hay movimientos en este mes para guardar");
+    return;
+  }
+
+  const btn = document.getElementById("btnSincronizarMes");
+  btn.disabled = true;
+  btn.textContent = "⏳ Enviando...";
 
   try{
     const resp = await fetch(URL_SHEET, {
@@ -731,17 +737,67 @@ document.getElementById("btnSincronizarSheets").addEventListener("click", async 
     });
 
     if(resp.ok){
-      mostrarToast(`✓ ${movsOrdenados.length} movimientos guardados en Sheets`);
+      mostrarToast(`✓ ${payload.movimientos.length} movimientos de ${MESES[estado.mes]} guardados en Sheets`);
     } else {
       mostrarToast("⚠️ Hubo un problema al conectar con Sheets");
     }
   }catch(err){
-    console.error("Error sincronizando con Google Sheets:", err);
+    console.error("Error sincronizando:", err);
     mostrarToast("⚠️ No se pudo conectar con Google Sheets");
   }finally{
     btn.disabled = false;
     btn.textContent = "☁ Guardar mes en Sheets";
   }
+});
+
+/* ---------- BOTÓN: Guardar TODO en Sheets (todos los meses) ---------- */
+document.getElementById("btnSincronizarTodo").addEventListener("click", async () => {
+  const todos = cargarTodo();
+  if(todos.length === 0){
+    mostrarToast("No hay movimientos guardados todavía");
+    return;
+  }
+
+  // Encontrar todos los meses/años únicos con movimientos
+  const periodos = new Map();
+  todos.forEach(m => {
+    const clave = `${m.anio}-${m.mes}`;
+    if(!periodos.has(clave)) periodos.set(clave, { anio: m.anio, mes: m.mes });
+  });
+
+  const btn = document.getElementById("btnSincronizarTodo");
+  btn.disabled = true;
+  btn.textContent = "⏳ Enviando...";
+  mostrarToast(`Enviando ${periodos.size} mes(es) a Google Sheets…`);
+
+  let exitosos = 0;
+  let fallidos = 0;
+
+  for(const [, {anio, mes}] of periodos){
+    const payload = construirPayloadMes(anio, mes);
+    if(!payload) continue;
+    try{
+      const resp = await fetch(URL_SHEET, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if(resp.ok) exitosos++;
+      else fallidos++;
+    }catch(err){
+      fallidos++;
+      console.error("Error en mes", mes, anio, err);
+    }
+  }
+
+  if(fallidos === 0){
+    mostrarToast(`✓ ${exitosos} mes(es) guardados en Google Sheets`);
+  } else {
+    mostrarToast(`✓ ${exitosos} guardados · ⚠️ ${fallidos} con error`);
+  }
+
+  btn.disabled = false;
+  btn.textContent = "📋 Guardar todo en Sheets";
 });
 
 /* ---------- formato moneda colombiana ---------- */
@@ -853,7 +909,7 @@ document.getElementById("formGasto").addEventListener("submit", (e)=>{
   const movs = cargarTodo();
   movs.push(nuevoMov);
   guardarTodo(movs);
-  guardarEnGoogleSheets(nuevoMov);   // sigue enviando cada entrada al agregarse
+  guardarEnGoogleSheets(nuevoMov);
 
   tituloInput.value = "";
   inputMonto.value  = "";
