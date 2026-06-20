@@ -252,6 +252,30 @@
     font-size: 13px;
     padding: 20px;
   }
+
+  .fecha-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .fecha-selector select {
+    flex: 1;
+    background: #0d0f12;
+    border: 1px solid #2a2d35;
+    color: #e8e8e8;
+    padding: 13px;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+  }
+
+  .fecha-selector select:focus {
+    border-color: #555;
+  }
 </style>
 </head>
 <body>
@@ -280,6 +304,11 @@
     <div class="tipo-selector">
       <button type="button" class="tipo-btn ganancia activo" id="btnGanancia" onclick="seleccionarTipo('Ganancia')">↑ Ganancia</button>
       <button type="button" class="tipo-btn gasto" id="btnGasto" onclick="seleccionarTipo('Gasto')">↓ Gasto</button>
+    </div>
+
+    <div class="fecha-selector">
+      <select id="selectMes"></select>
+      <select id="selectAnio"></select>
     </div>
 
     <input type="text" id="concepto" placeholder="¿En qué? Ej: Sueldo, Mercado, Transporte...">
@@ -389,6 +418,29 @@
 
   const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
+  function llenarSelectoresFecha() {
+    const selectMes = document.getElementById('selectMes');
+    const selectAnio = document.getElementById('selectAnio');
+    const hoy = new Date();
+
+    MESES.forEach((m, i) => {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m;
+      if (i === hoy.getMonth()) opt.selected = true;
+      selectMes.appendChild(opt);
+    });
+
+    const anioActual = hoy.getFullYear();
+    for (let a = anioActual - 2; a <= anioActual + 1; a++) {
+      const opt = document.createElement('option');
+      opt.value = a;
+      opt.textContent = a;
+      if (a === anioActual) opt.selected = true;
+      selectAnio.appendChild(opt);
+    }
+  }
+
   function guardarRegistro() {
     const concepto = document.getElementById('concepto').value.trim();
     const valorTexto = document.getElementById('valor').value.replace(/\./g, '').replace(/,/g, '');
@@ -403,9 +455,8 @@
       return;
     }
 
-    const hoy = new Date();
-    const mes = MESES[hoy.getMonth()];
-    const anio = hoy.getFullYear();
+    const mes = document.getElementById('selectMes').value;
+    const anio = document.getElementById('selectAnio').value;
 
     const registro = {
       id: Date.now(),
@@ -448,6 +499,7 @@
     if (e.key === 'Enter') guardarRegistro();
   });
 
+  llenarSelectoresFecha();
   actualizarResumen();
 </script>
 
