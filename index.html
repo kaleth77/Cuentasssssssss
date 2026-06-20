@@ -223,6 +223,29 @@
   .item-valor.ganancia { color: #4ade80; }
   .item-valor.gasto { color: #f87171; }
 
+  .item-derecha {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn-borrar {
+    background: none;
+    border: none;
+    color: #555;
+    font-size: 17px;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    line-height: 1;
+  }
+
+  .btn-borrar:hover {
+    color: #f87171;
+    background: #2a1818;
+  }
+
   .vacio {
     text-align: center;
     color: #555;
@@ -341,12 +364,21 @@
           <div class="item-concepto">${r.concepto}</div>
           <div class="item-fecha">${r.mes} ${r.anio}</div>
         </div>
-        <div class="item-valor ${r.tipo === 'Ganancia' ? 'ganancia' : 'gasto'}">
-          ${r.tipo === 'Ganancia' ? '+' : '-'}${formatearMoneda(r.valorNum)}
+        <div class="item-derecha">
+          <div class="item-valor ${r.tipo === 'Ganancia' ? 'ganancia' : 'gasto'}">
+            ${r.tipo === 'Ganancia' ? '+' : '-'}${formatearMoneda(r.valorNum)}
+          </div>
+          <button class="btn-borrar" onclick="borrarRegistro(${r.id})" title="Borrar de la vista">🗑️</button>
         </div>
       `;
       cont.appendChild(div);
     });
+  }
+
+  function borrarRegistro(id) {
+    registros = registros.filter(r => r.id !== id);
+    renderHistorial();
+    actualizarResumen();
   }
 
   function mostrarStatus(texto, clase) {
@@ -376,6 +408,7 @@
     const anio = hoy.getFullYear();
 
     const registro = {
+      id: Date.now(),
       tipo: tipoActual,
       concepto: concepto,
       categoria: tipoActual,
